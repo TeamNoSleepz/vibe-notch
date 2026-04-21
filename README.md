@@ -84,6 +84,18 @@ Then open `/Applications/VibeNotch.app`. Click the `●` in the menu bar and ena
 
 ---
 
+## Uninstall
+
+```bash
+./uninstall.sh
+```
+
+Removes the hooks from `~/.claude/settings.json`, deletes `/Applications/VibeNotch.app`, and cleans up `/tmp/vibe-notch*`.
+
+> **Important:** run `uninstall.sh` before deleting the repo. If you delete the repo first, the hooks in `~/.claude/settings.json` will point to a missing file and Claude Code will error on every session. If that happens, manually remove the `vibe-notch-hook.sh` entries from `~/.claude/settings.json`.
+
+---
+
 ## Manual hook setup
 
 If you'd rather wire the hooks yourself, add these to `~/.claude/settings.json`:
