@@ -6,6 +6,7 @@ import ServiceManagement
 // MARK: - Panel
 
 final class NotchPanel: NSPanel {
+    // Prevents the panel from stealing focus from whatever app the user is in
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
 }
@@ -86,9 +87,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: NotchPanel!
     private let panelWidth: CGFloat = 248
     private var statusItem: NSStatusItem!
+    // Only observes $pattern — agentCount isn't shown in the button, only in the menu on open
     private var stateObserver: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Hides the app from the Dock and Cmd+Tab switcher
         NSApp.setActivationPolicy(.accessory)
         buildPanel()
         centerOverNotch()
@@ -131,6 +134,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func buildStatusMenu() {
         let menu = NSMenu()
+        // menuWillOpen refreshes dynamic items on demand rather than rebuilding every 300ms
         menu.delegate = self
 
         let header = NSMenuItem(title: "VibeNotch", action: nil, keyEquivalent: "")
@@ -139,6 +143,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
+        // Tags 1–3 are looked up by menuWillOpen to refresh their titles
         let stateItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
         stateItem.isEnabled = false
         stateItem.tag = 1
@@ -151,6 +156,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
+        // SMAppService.mainApp requires a CFBundleIdentifier — unavailable when running as a raw SPM executable
         if Bundle.main.bundleIdentifier != nil {
             let launchItem = NSMenuItem(
                 title: "Launch at Login",
@@ -188,6 +194,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func notchHeight(for screen: NSScreen) -> CGFloat {
         let h = screen.safeAreaInsets.top
+        // safeAreaInsets.top is 0 on non-notch displays; fall back to menu bar height
         return h > 0 ? h : screen.frame.maxY - screen.visibleFrame.maxY
     }
 
@@ -205,15 +212,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
+        // .mainMenu alone sits below full-screen app overlays; +3 clears all system UI layers
         panel.level = NSWindow.Level(rawValue: Int(NSWindow.Level.mainMenu.rawValue) + 3)
+        // canJoinAllSpaces — visible on every Space, not just the one it was born on
+        // fullScreenAuxiliary — survives when another app goes full-screen
+        // stationary — excluded from Exposé/Mission Control reshuffling
+        // ignoresCycle — excluded from Cmd+` window cycling
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         panel.isMovable = false
         panel.isReleasedWhenClosed = false
+        // NSPanel default is true — would hide the overlay the moment the user clicks another app
         panel.hidesOnDeactivate = false
         panel.animationBehavior = .none
         panel.ignoresMouseEvents = true
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
+        // Prevents the notch overlay from appearing in screen recordings and screenshots
         panel.sharingType = .none
         panel.appearance = NSAppearance(named: .darkAqua)
 

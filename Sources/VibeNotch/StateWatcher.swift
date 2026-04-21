@@ -6,13 +6,13 @@ final class ClaudeState: ObservableObject {
     @Published var pattern: IndicatorPattern = .idle
     @Published var agentCount: Int = 0
 
-    // State is written to this file by Claude Code hooks (hooks/vibe-notch-hook.sh)
+    // Written by Claude Code hooks (hooks/vibe-notch-hook.sh) on every event
     private let statePath = "/tmp/vibe-notch"
     private var cancellable: AnyCancellable?
     private var agentCancellable: AnyCancellable?
 
     func start() {
-        // Poll instead of using FSEvents — simpler and plenty fast for a visual indicator
+        // Polling instead of FSEvents — simpler, and 300ms is fast enough for a visual indicator
         cancellable = Timer.publish(every: 0.3, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in self?.poll() }
@@ -35,10 +35,12 @@ final class ClaudeState: ObservableObject {
         case "awaiting":         next = .awaiting
         default:                 next = .idle
         }
+        // Guard against redundant assignments — each @Published write triggers a SwiftUI redraw
         if pattern != next { pattern = next }
     }
 
     private func pollAgentCount() {
+        // pgrep spawns a subprocess; dispatch to avoid blocking the main thread every 2s
         DispatchQueue.global(qos: .utility).async { [weak self] in
             let count = Self.countRunningAgents()
             DispatchQueue.main.async {
@@ -50,14 +52,17 @@ final class ClaudeState: ObservableObject {
     private static func countRunningAgents() -> Int {
         let task = Process()
         task.launchPath = "/usr/bin/pgrep"
+        // -x = exact name match; without it "claude-helper" and similar would be counted too
         task.arguments = ["-x", "claude"]
         let pipe = Pipe()
         task.standardOutput = pipe
+        // Discard stderr — pgrep exits 1 with no output when no processes match, which is normal
         task.standardError = Pipe()
         try? task.run()
         task.waitUntilExit()
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: data, encoding: .utf8) ?? ""
+        // Each non-empty line is one PID
         return output.components(separatedBy: .newlines).filter { !$0.isEmpty }.count
     }
 }
