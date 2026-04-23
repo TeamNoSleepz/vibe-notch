@@ -2,11 +2,52 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Play a configurable system sound when Claude interrupts (→ awaiting) and when Claude finishes (→ idle), with per-event on/off toggles and sound pickers in Preferences.
+**Goal:** Play a configurable system sound when Claude interrupts (→ awaiting) and when Claude finishes (→ idle), with per-event on/off toggles and sound pickers in Preferences. VibeNotch replaces Claude Code's existing `afplay` notification hook so sounds don't double-up.
 
-**Architecture:** Add 4 new UserDefaults-backed properties to `AppPreferences`. Detect state transitions in `ClaudeState.acceptConnection` and play `NSSound`. Add a sound section to `GeneralSettingsView`.
+**Architecture:** Remove the `afplay` entry from the `Notification` hook in `~/.claude/settings.json`. Add 4 new UserDefaults-backed properties to `AppPreferences`. Detect state transitions in `ClaudeState.acceptConnection` and play `NSSound`. Add a sound section to `GeneralSettingsView`.
 
 **Tech Stack:** Swift, AppKit (`NSSound`), SwiftUI, UserDefaults
+
+---
+
+### Task 0: Remove Claude Code's afplay notification hook
+
+**Files:**
+- Modify: `~/.claude/settings.json`
+
+- [ ] **Step 1: Remove the `afplay` hook entry from the `Notification` array**
+
+In `~/.claude/settings.json`, find the `Notification` hook array. Remove this entry (the one with no `matcher`):
+
+```json
+{
+    "hooks": [
+        {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Funk.aiff &"
+        }
+    ]
+}
+```
+
+Leave all other `Notification` entries (vibe-island-bridge, etc.) intact.
+
+- [ ] **Step 2: Verify JSON is valid**
+
+```bash
+python3 -m json.tool ~/.claude/settings.json > /dev/null && echo "Valid JSON"
+```
+
+Expected: `Valid JSON`
+
+- [ ] **Step 3: Commit**
+
+```bash
+git -C /Users/nikpavic/vibe-notch add -A
+git -C /Users/nikpavic/vibe-notch commit -m "Note: afplay hook removed from ~/.claude/settings.json" --allow-empty
+```
+
+Note: `~/.claude/settings.json` is outside this repo — no file to stage. The commit just records the manual change was made.
 
 ---
 
