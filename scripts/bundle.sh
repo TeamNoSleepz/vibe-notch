@@ -29,9 +29,9 @@ cat > "$BUNDLE/Contents/Info.plist" << 'EOF'
     <key>CFBundleExecutable</key>
     <string>VibeNotch</string>
     <key>CFBundleVersion</key>
-    <string>1.0</string>
+    <string>0.1</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>0.1</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>LSUIElement</key>
