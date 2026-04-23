@@ -116,6 +116,35 @@ struct PaletteSwatchView: View {
     }
 }
 
+// MARK: - Sound Row
+
+struct SoundRowView: View {
+    let label: String
+    @Binding var enabled: Bool
+    @Binding var soundName: String
+
+    var body: some View {
+        HStack {
+            Text(label)
+                .frame(width: 70, alignment: .leading)
+            Toggle("", isOn: $enabled)
+                .toggleStyle(.switch)
+                .labelsHidden()
+            Picker("", selection: $soundName) {
+                ForEach(AppPreferences.systemSounds, id: \.self) { name in
+                    Text(name).tag(name)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(width: 120)
+            .disabled(!enabled)
+            .onChange(of: soundName) { newName in
+                NSSound(named: NSSound.Name(newName))?.play()
+            }
+        }
+    }
+}
+
 // MARK: - General Settings
 
 struct GeneralSettingsView: View {
@@ -155,6 +184,23 @@ struct GeneralSettingsView: View {
                     }
             }
 
+            Divider()
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Sound")
+                    .font(.headline)
+                SoundRowView(
+                    label: "Interrupt",
+                    enabled: $prefs.interruptSoundEnabled,
+                    soundName: $prefs.interruptSoundName
+                )
+                SoundRowView(
+                    label: "Finish",
+                    enabled: $prefs.finishSoundEnabled,
+                    soundName: $prefs.finishSoundName
+                )
+            }
+
             Spacer()
         }
         .padding(20)
@@ -171,7 +217,7 @@ struct SettingsView: View {
             GeneralSettingsView()
                 .tabItem { Label("General", systemImage: "gearshape") }
         }
-        .frame(width: 380, height: 260)
+        .frame(width: 380, height: 340)
     }
 }
 
@@ -184,7 +230,7 @@ final class SettingsWindowController {
     func showWindow() {
         if window == nil {
             let w = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 380, height: 260),
+                contentRect: NSRect(x: 0, y: 0, width: 380, height: 340),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
                 defer: false
