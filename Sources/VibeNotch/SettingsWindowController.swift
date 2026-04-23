@@ -163,7 +163,9 @@ struct SoundRowView: View {
 struct GeneralSettingsView: View {
     @ObservedObject private var prefs = AppPreferences.shared
     @State private var launchAtLogin = false
+    @State private var checkingUpdate = false
     private let hasBundle = Bundle.main.bundleIdentifier != nil
+    private let currentVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -212,6 +214,37 @@ struct GeneralSettingsView: View {
                     enabled: $prefs.finishSoundEnabled,
                     soundName: $prefs.finishSoundName
                 )
+            }
+
+            Divider()
+
+            HStack {
+                Text("v\(currentVersion)")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                Spacer()
+                Button(checkingUpdate ? "Checking…" : "Check for Updates") {
+                    checkingUpdate = true
+                    UpdateChecker.check { version in
+                        checkingUpdate = false
+                        let alert = NSAlert()
+                        if let version {
+                            alert.messageText = "Update Available"
+                            alert.informativeText = "Version \(version) is available. You have \(currentVersion)."
+                            alert.addButton(withTitle: "Update")
+                            alert.addButton(withTitle: "Cancel")
+                            if alert.runModal() == .alertFirstButtonReturn {
+                                NSWorkspace.shared.open(UpdateChecker.releasesURL)
+                            }
+                        } else {
+                            alert.messageText = "You're up to date"
+                            alert.informativeText = "VibeNotch \(currentVersion) is the latest version."
+                            alert.addButton(withTitle: "OK")
+                            alert.runModal()
+                        }
+                    }
+                }
+                .disabled(checkingUpdate)
             }
 
             Spacer()
