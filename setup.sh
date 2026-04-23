@@ -2,7 +2,7 @@
 set -e
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK="$REPO_DIR/hooks/vibe-notch-hook.sh"
+HOOK="$REPO_DIR/hooks/vibe-notch-hook.py"
 SETTINGS="$HOME/.claude/settings.json"
 
 echo "=== VibeNotch Setup ==="
@@ -32,25 +32,50 @@ else:
 
 hooks = settings.setdefault("hooks", {})
 
-events = {
-    "UserPromptSubmit": "user-prompt",
-    "PreToolUse":       "pre-tool",
-    "PostToolUse":      "post-tool",
-    "Stop":             "stop",
-    "SessionStart":     "session-start",
-}
+# Remove old bash hook entries (vibe-notch-hook.sh)
+for event in list(hooks.keys()):
+    if isinstance(hooks[event], list):
+        cleaned = []
+        for entry in hooks[event]:
+            if isinstance(entry, dict):
+                entry_hooks = [h for h in entry.get("hooks", [])
+                               if "vibe-notch-hook.sh" not in h.get("command", "")]
+                if entry_hooks:
+                    entry_copy = dict(entry)
+                    entry_copy["hooks"] = entry_hooks
+                    cleaned.append(entry_copy)
+            else:
+                cleaned.append(entry)
+        if cleaned:
+            hooks[event] = cleaned
+        else:
+            del hooks[event]
 
-added = []
-for event, arg in events.items():
-    command = f"{hook_path} {arg}"
-    entries = hooks.setdefault(event, [])
-    already = any(
-        h.get("command") == command
+command = f"python3 {hook_path}"
+
+# Events where tool context applies — use matcher: "*"
+tool_events = ["PreToolUse", "PostToolUse", "PermissionRequest", "Notification"]
+# Events with no tool context — omit matcher
+session_events = ["UserPromptSubmit", "Stop", "SessionStart", "SessionEnd"]
+
+def already_installed(entries):
+    return any(
+        "vibe-notch-hook" in h.get("command", "")
         for entry in entries
         for h in entry.get("hooks", [])
     )
-    if not already:
+
+added = []
+for event in tool_events:
+    entries = hooks.setdefault(event, [])
+    if not already_installed(entries):
         entries.append({"matcher": "*", "hooks": [{"type": "command", "command": command}]})
+        added.append(event)
+
+for event in session_events:
+    entries = hooks.setdefault(event, [])
+    if not already_installed(entries):
+        entries.append({"hooks": [{"type": "command", "command": command}]})
         added.append(event)
 
 with open(settings_path, "w") as f:

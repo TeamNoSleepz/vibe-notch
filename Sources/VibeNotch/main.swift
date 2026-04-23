@@ -1,6 +1,5 @@
 import AppKit
 import SwiftUI
-import Combine
 import ServiceManagement
 
 // MARK: - Panel
@@ -11,35 +10,188 @@ final class NotchPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 }
 
+// MARK: - Visual Effect Blur
+
+struct VisualEffectBlur: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let v = NSVisualEffectView()
+        v.material = .hudWindow
+        v.blendingMode = .behindWindow
+        v.state = .active
+        return v
+    }
+    func updateNSView(_ v: NSVisualEffectView, context: Context) {}
+}
+
 // MARK: - Indicator
+
+// 3×3 grid of cells, row-major: index 0 = top-left, 8 = bottom-right.
+// true = lit with the pattern's active color, false = dim background.
+struct CellMask {
+    let cells: [Bool]  // exactly 9 elements
+
+    init(_ c0: Bool, _ c1: Bool, _ c2: Bool,
+         _ c3: Bool, _ c4: Bool, _ c5: Bool,
+         _ c6: Bool, _ c7: Bool, _ c8: Bool) {
+        cells = [c0, c1, c2, c3, c4, c5, c6, c7, c8]
+    }
+
+    subscript(idx: Int) -> Bool { cells[idx] }
+}
+
+enum WorkingAnimation: CaseIterable, Equatable {
+    case snake
+    case singleHorizontal
+    case singleVertical
+    case staggeringHorizontal
+    case staggeringVertical
+
+    var path: [Int] {
+        switch self {
+        case .snake:                return [0, 1, 2, 5, 4, 3, 6, 7, 8, 5, 4, 3]
+        case .singleHorizontal:     return [3, 4, 5]
+        case .singleVertical:       return [1, 4, 7]
+        case .staggeringHorizontal: return [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        case .staggeringVertical:   return [6, 3, 0, 7, 4, 1, 8, 5, 2]
+        }
+    }
+
+    var trailLength: Int {
+        switch self {
+        case .snake:                return 4
+        case .singleHorizontal:     return 2
+        case .singleVertical:       return 2
+        case .staggeringHorizontal: return 3
+        case .staggeringVertical:   return 3
+        }
+    }
+}
 
 enum IndicatorPattern: Equatable {
     case idle, working, awaiting
 
     var color: Color {
+        let p = AppPreferences.shared.selectedPalette
         switch self {
-        case .idle:     return Color(white: 0.35)
-        case .working:  return Color(red: 1, green: 0.4, blue: 0)
-        case .awaiting: return Color(red: 1, green: 0.2, blue: 0.2)
+        case .idle:     return p.idle
+        case .working:  return p.working
+        case .awaiting: return p.awaiting
         }
     }
 
     var nsColor: NSColor {
+        let p = AppPreferences.shared.selectedPalette
         switch self {
-        case .idle:     return .tertiaryLabelColor
-        case .working:  return NSColor(red: 1, green: 0.4, blue: 0, alpha: 1)
-        case .awaiting: return NSColor(red: 1, green: 0.2, blue: 0.2, alpha: 1)
+        case .idle:     return NSColor(p.idle)
+        case .working:  return NSColor(p.working)
+        case .awaiting: return NSColor(p.awaiting)
+        }
+    }
+
+    func mask() -> CellMask {
+        switch self {
+        case .idle:
+            return CellMask(false, false, false,
+                            false, true,  false,
+                            false, false, false)
+        case .working:
+            return CellMask(false, false, false,
+                            false, false, false,
+                            false, false, false)
+        case .awaiting:
+            return CellMask(true,  false, true,
+                            false, false, false,
+                            true,  false, true)
         }
     }
 }
 
 struct IndicatorView: View {
     let pattern: IndicatorPattern
+    @State private var workingAnimation: WorkingAnimation = WorkingAnimation.allCases.randomElement()!
+    @State private var headIdx: Int = 0
+    @State private var awaitingIdx: Int = 0
+
+    private static let creamColor   = Color(red: 1.0, green: 0.80, blue: 0.608)
+    private static let glowColor    = Color(red: 0.80, green: 0.55, blue: 0.25)
+    private static let ticker       = Timer.publish(every: 0.20, on: .main, in: .common).autoconnect()
+    private static let idleTicker   = Timer.publish(every: 0.38, on: .main, in: .common).autoconnect()
+    private static let awaitTicker  = Timer.publish(every: 0.40, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        Circle()
-            .fill(pattern.color)
-            .frame(width: 8, height: 8)
+        ZStack {
+            if pattern == .working {
+                Circle()
+                    .fill(Self.glowColor.opacity(0.55))
+                    .blur(radius: 9)
+                    .frame(width: 18, height: 18)
+            }
+
+            VStack(spacing: 0) {
+                ForEach(0..<3, id: \.self) { row in
+                    HStack(spacing: 0) {
+                        ForEach(0..<3, id: \.self) { col in
+                            let idx = row * 3 + col
+                            Rectangle()
+                                .fill(pattern == .working ? Self.creamColor : pattern.color)
+                                .opacity(cellOpacity(idx: idx))
+                                .frame(width: 5, height: 5)
+                                .animation(.easeInOut(duration: 0.22), value: headIdx)
+                                .animation(.easeInOut(duration: 0.22), value: awaitingIdx)
+                        }
+                    }
+                }
+            }
+            .frame(width: 15, height: 15)
+        }
+        .onReceive(Self.ticker) { _ in
+            guard pattern == .working else { return }
+            headIdx = (headIdx + 1) % workingAnimation.path.count
+        }
+        .onReceive(Self.idleTicker) { _ in
+            guard pattern == .idle else { return }
+            headIdx = (headIdx + 1) % workingAnimation.path.count
+        }
+        .onReceive(Self.awaitTicker) { _ in
+            guard pattern == .awaiting else { return }
+            awaitingIdx = (awaitingIdx + 1) % 3
+        }
+        .onChange(of: pattern) { newPattern in
+            if newPattern == .working {
+                workingAnimation = WorkingAnimation.allCases.randomElement()!
+                headIdx = 0
+            }
+            if newPattern == .awaiting {
+                awaitingIdx = 0
+            }
+        }
+    }
+
+    private func cellOpacity(idx: Int) -> Double {
+        switch pattern {
+        case .awaiting:
+            let path = [1, 4, 7]
+            let trailLen = 2
+            for i in 0..<trailLen {
+                let pi = (awaitingIdx - i + path.count) % path.count
+                if path[pi] == idx {
+                    let t = Double(trailLen - 1 - i) / Double(trailLen - 1)
+                    return 0.35 + t * 0.65
+                }
+            }
+            return 0.0
+        case .idle, .working:
+            let path = workingAnimation.path
+            let len  = workingAnimation.trailLength
+            for i in 0..<len {
+                let pi = (headIdx - i + path.count) % path.count
+                if path[pi] == idx {
+                    let t = Double(len - 1 - i) / Double(len - 1)
+                    return 0.30 + t * 0.70
+                }
+            }
+            return 0.0
+        }
     }
 }
 
@@ -103,6 +255,7 @@ struct NotchShape: Shape {
 
 struct NotchView: View {
     @ObservedObject var state = ClaudeState.shared
+    @ObservedObject var prefs = AppPreferences.shared
 
     var body: some View {
         HStack(spacing: 0) {
@@ -137,8 +290,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: NotchPanel!
     private let sideSlotWidth: CGFloat = 40  // 32pt item + 8pt inward padding
     private var statusItem: NSStatusItem!
-    // Only observes $pattern — agentCount isn't shown in the button, only in the menu on open
-    private var stateObserver: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hides the app from the Dock and Cmd+Tab switcher
@@ -161,25 +312,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Status Item
 
     private func setupStatusItem() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        refreshStatusButton()
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+
+        if let button = statusItem?.button {
+            let img = NSImage(systemSymbolName: "square.grid.3x3.fill", accessibilityDescription: "VibeNotch")
+            img?.isTemplate = true
+            button.image = img
+            button.toolTip = "VibeNotch"
+        }
+
         buildStatusMenu()
-
-        stateObserver = ClaudeState.shared.$pattern
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.refreshStatusButton() }
-    }
-
-    private func refreshStatusButton() {
-        guard let button = statusItem?.button else { return }
-        button.attributedTitle = NSAttributedString(
-            string: "●",
-            attributes: [
-                .foregroundColor: ClaudeState.shared.pattern.nsColor,
-                .font: NSFont.systemFont(ofSize: 14, weight: .regular)
-            ]
-        )
-        button.toolTip = "VibeNotch"
     }
 
     private func buildStatusMenu() {
@@ -216,8 +358,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             launchItem.target = self
             launchItem.tag = 3
             menu.addItem(launchItem)
-            menu.addItem(.separator())
         }
+
+        menu.addItem(.separator())
+
+        let prefsItem = NSMenuItem(
+            title: "Preferences…",
+            action: #selector(openPreferences),
+            keyEquivalent: ","
+        )
+        prefsItem.target = self
+        menu.addItem(prefsItem)
+
+        menu.addItem(.separator())
 
         menu.addItem(NSMenuItem(
             title: "Quit VibeNotch",
@@ -226,6 +379,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ))
 
         statusItem.menu = menu
+    }
+
+    @objc private func openPreferences() {
+        SettingsWindowController.shared.showWindow()
     }
 
     @objc private func toggleLaunchAtLogin() {
