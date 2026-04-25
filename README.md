@@ -72,12 +72,14 @@ Notch panel + menu bar icon
 
 ---
 
-## Preferences
+## Settings
 
-Click the menu bar icon → **Preferences** to configure:
+Click the menu bar icon → **Settings** to configure:
 
 - **Color palette** — Default (amber), Neon (green/blue), Pastel
 - **Sounds** — optional chime when Claude interrupts you or finishes a task (uses system sounds, routed through AVAudioPlayer for Bluetooth compatibility)
+
+Click **Submit Feedback** to open a GitHub issue.
 
 ---
 
@@ -120,7 +122,7 @@ notch-agent/
 ├── Sources/NotchAgent/
 │   ├── main.swift                      # NSPanel, NSStatusItem, IndicatorView, AppDelegate
 │   ├── StateWatcher.swift              # ClaudeState — Unix socket server + agent counter
-│   └── SettingsWindowController.swift  # Preferences UI, AppPreferences, color palettes
+│   └── SettingsWindowController.swift  # Settings UI, AppPreferences, color palettes
 ├── hooks/
 │   └── notch-agent-hook.py              # Claude Code hook — sends events via Unix socket
 ├── scripts/
