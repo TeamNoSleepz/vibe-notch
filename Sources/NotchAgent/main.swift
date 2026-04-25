@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import ServiceManagement
+import TelemetryClient
 
 // MARK: - Panel
 
@@ -294,6 +295,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hides the app from the Dock and Cmd+Tab switcher
         NSApp.setActivationPolicy(.accessory)
+
+        var telemetryConfig = TelemetryDeck.Config(appID: "8740D36A-560E-4E5B-82B2-6EEDD49952FF")
+        #if DEBUG
+        telemetryConfig.testMode = true
+        #endif
+        TelemetryDeck.initialize(config: telemetryConfig)
+        TelemetryDeck.signal("appLaunched", parameters: [
+            "appVersion": Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
+            "macOSVersion": ProcessInfo.processInfo.operatingSystemVersionString,
+        ])
+
         buildPanel()
         centerOverNotch()
         panel.orderFrontRegardless()
@@ -315,9 +327,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         if let button = statusItem?.button {
-            let img = NSImage(systemSymbolName: "square.grid.3x3.fill", accessibilityDescription: "NotchAgent")
-            img?.isTemplate = true
-            button.image = img
+            if let iconURL = Bundle.main.url(forResource: "StatusBarIconTemplate", withExtension: "png"),
+               let img = NSImage(contentsOf: iconURL) {
+                img.isTemplate = true
+                button.image = img
+            } else {
+                let img = NSImage(systemSymbolName: "square.grid.3x3.fill", accessibilityDescription: "NotchAgent")
+                img?.isTemplate = true
+                button.image = img
+            }
             button.toolTip = "NotchAgent"
         }
 
@@ -363,12 +381,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let prefsItem = NSMenuItem(
-            title: "Preferences…",
+            title: "Settings",
             action: #selector(openPreferences),
-            keyEquivalent: ","
+            keyEquivalent: ""
         )
         prefsItem.target = self
         menu.addItem(prefsItem)
+
+        menu.addItem(.separator())
+
+        let feedbackItem = NSMenuItem(
+            title: "Submit Feedback",
+            action: #selector(openFeedback),
+            keyEquivalent: ""
+        )
+        feedbackItem.target = self
+        menu.addItem(feedbackItem)
 
         menu.addItem(.separator())
 
@@ -379,6 +407,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ))
 
         statusItem.menu = menu
+    }
+
+    @objc private func openFeedback() {
+        if let url = URL(string: "https://github.com/TeamNoSleepz/notch-agent/issues/new") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     @objc private func openPreferences() {

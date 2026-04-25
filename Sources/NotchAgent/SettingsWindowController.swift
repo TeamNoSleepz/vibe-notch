@@ -24,18 +24,6 @@ final class AppPreferences: ObservableObject {
             working: Color(red: 1, green: 0.4, blue: 0),
             awaiting: Color(red: 1, green: 0.2, blue: 0.2)
         ),
-        ColorPalette(
-            name: "Neon",
-            idle: Color(white: 0.4),
-            working: Color(red: 0, green: 1, blue: 0.4),
-            awaiting: Color(red: 0.4, green: 0.4, blue: 1)
-        ),
-        ColorPalette(
-            name: "Pastel",
-            idle: Color(white: 0.5),
-            working: Color(red: 1, green: 0.75, blue: 0.5),
-            awaiting: Color(red: 0.8, green: 0.6, blue: 1)
-        ),
     ]
 
     static let systemSounds = [
@@ -84,6 +72,7 @@ final class AppPreferences: ObservableObject {
             finishSoundEnabled = true
         }
         finishSoundName = ud.string(forKey: "notchagent.finishSoundName") ?? "Glass"
+
     }
 }
 
@@ -92,6 +81,7 @@ final class AppPreferences: ObservableObject {
 struct PaletteSwatchView: View {
     let palette: ColorPalette
     let isSelected: Bool
+    let comingSoon: Bool
     let onTap: () -> Void
 
     var body: some View {
@@ -105,15 +95,41 @@ struct PaletteSwatchView: View {
                     Circle().fill(palette.working).frame(width: 9, height: 9)
                     Circle().fill(palette.awaiting).frame(width: 9, height: 9)
                 }
+                .opacity(comingSoon ? 0.35 : 1)
                 RoundedRectangle(cornerRadius: 8)
                     .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
                     .frame(width: 64, height: 52)
+                if comingSoon {
+                    Text("Soon")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(.secondary)
+                }
             }
             Text(palette.name)
                 .font(.caption)
-                .foregroundColor(isSelected ? .primary : .secondary)
+                .foregroundColor(comingSoon ? Color(white: 0.4) : (isSelected ? .primary : .secondary))
         }
-        .onTapGesture(perform: onTap)
+        .onTapGesture { if !comingSoon { onTap() } }
+    }
+}
+
+// MARK: - Coming Soon Swatch
+
+struct ComingSoonSwatchView: View {
+    var body: some View {
+        VStack(spacing: 6) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(white: 0.12))
+                    .frame(width: 64, height: 52)
+                Text("Soon")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(Color(white: 0.35))
+            }
+            Text("—")
+                .font(.caption)
+                .foregroundColor(Color(white: 0.3))
+        }
     }
 }
 
@@ -177,26 +193,33 @@ struct GeneralSettingsView: View {
                         PaletteSwatchView(
                             palette: palette,
                             isSelected: prefs.paletteIndex == index,
+                            comingSoon: false,
                             onTap: { prefs.paletteIndex = index }
                         )
                     }
+                    ComingSoonSwatchView()
+                    ComingSoonSwatchView()
                 }
             }
 
             if hasBundle {
                 Divider()
-                Toggle("Launch at Login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { newValue in
-                        do {
-                            if newValue {
-                                try SMAppService.mainApp.register()
-                            } else {
-                                try SMAppService.mainApp.unregister()
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("General")
+                        .font(.headline)
+                    Toggle("Launch at Login", isOn: $launchAtLogin)
+                        .onChange(of: launchAtLogin) { newValue in
+                            do {
+                                if newValue {
+                                    try SMAppService.mainApp.register()
+                                } else {
+                                    try SMAppService.mainApp.unregister()
+                                }
+                            } catch {
+                                launchAtLogin = !newValue
                             }
-                        } catch {
-                            launchAtLogin = !newValue
                         }
-                    }
+                }
             }
 
             Divider()
@@ -218,6 +241,9 @@ struct GeneralSettingsView: View {
 
             Divider()
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text("About")
+                    .font(.headline)
             HStack {
                 Text("v\(currentVersion)")
                     .foregroundColor(.secondary)
@@ -246,8 +272,8 @@ struct GeneralSettingsView: View {
                 }
                 .disabled(checkingUpdate)
             }
+            }
 
-            Spacer()
         }
         .padding(20)
         .frame(width: 340)
@@ -263,7 +289,8 @@ struct SettingsView: View {
             GeneralSettingsView()
                 .tabItem { Label("General", systemImage: "gearshape") }
         }
-        .frame(width: 380, height: 340)
+        .frame(width: 380)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
