@@ -2,14 +2,14 @@
 set -e
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK="$REPO_DIR/hooks/vibe-notch-hook.py"
+HOOK="$REPO_DIR/hooks/notch-agent-hook.py"
 SETTINGS="$HOME/.claude/settings.json"
 
-echo "=== VibeNotch Setup ==="
+echo "=== NotchAgent Setup ==="
 echo ""
 
 # 1. Install the app
-echo "Step 1: Building and installing VibeNotch.app..."
+echo "Step 1: Building and installing NotchAgent.app..."
 "$REPO_DIR/scripts/install.sh"
 echo ""
 
@@ -32,14 +32,14 @@ else:
 
 hooks = settings.setdefault("hooks", {})
 
-# Remove old bash hook entries (vibe-notch-hook.sh)
+# Remove old bash hook entries (notch-agent-hook.sh)
 for event in list(hooks.keys()):
     if isinstance(hooks[event], list):
         cleaned = []
         for entry in hooks[event]:
             if isinstance(entry, dict):
                 entry_hooks = [h for h in entry.get("hooks", [])
-                               if "vibe-notch-hook.sh" not in h.get("command", "")]
+                               if "notch-agent-hook.sh" not in h.get("command", "")]
                 if entry_hooks:
                     entry_copy = dict(entry)
                     entry_copy["hooks"] = entry_hooks
@@ -60,7 +60,7 @@ session_events = ["UserPromptSubmit", "Stop", "SessionStart", "SessionEnd"]
 
 def already_installed(entries):
     return any(
-        "vibe-notch-hook" in h.get("command", "")
+        "notch-agent-hook" in h.get("command", "")
         for entry in entries
         for h in entry.get("hooks", [])
     )
@@ -90,6 +90,6 @@ PYEOF
 echo ""
 echo "=== Done! ==="
 echo ""
-echo "Open /Applications/VibeNotch.app to start."
+echo "Open /Applications/NotchAgent.app to start."
 echo "You'll see a ● dot in your menu bar tracking Claude's state."
 echo "Click it to enable 'Launch at Login'."

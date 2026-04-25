@@ -1,4 +1,4 @@
-# VibeNotch
+# NotchAgent
 
 A lightweight macOS menu bar app that turns your MacBook's notch into a live Claude Code status indicator.
 
@@ -29,17 +29,17 @@ xcode-select --install  # skip if already installed
 ```
 
 ```bash
-git clone https://github.com/TeamNoSleepz/vibe-notch
-cd vibe-notch
+git clone https://github.com/TeamNoSleepz/notch-agent
+cd notch-agent
 ./setup.sh
 ```
 
-Open `/Applications/VibeNotch.app`, then click the menu bar icon and enable **Launch at Login**.
+Open `/Applications/NotchAgent.app`, then click the menu bar icon and enable **Launch at Login**.
 
 ### What `setup.sh` does
 
-1. Builds a release binary with `swift build -c release`, wraps it into `VibeNotch.app`, and installs it to `/Applications`
-2. Injects Claude Code hooks into `~/.claude/settings.json` — 8 events pointing at `hooks/vibe-notch-hook.py`
+1. Builds a release binary with `swift build -c release`, wraps it into `NotchAgent.app`, and installs it to `/Applications`
+2. Injects Claude Code hooks into `~/.claude/settings.json` — 8 events pointing at `hooks/notch-agent-hook.py`
 
 ---
 
@@ -49,11 +49,11 @@ Open `/Applications/VibeNotch.app`, then click the menu bar icon and enable **La
 Claude Code
     │  hook fires on every event (PreToolUse, Stop, etc.)
     ▼
-hooks/vibe-notch-hook.py
-    │  sends JSON payload to /tmp/vibe-notch.sock
+hooks/notch-agent-hook.py
+    │  sends JSON payload to /tmp/notch-agent.sock
     │  fire-and-forget, exits immediately
     ▼
-VibeNotch.app
+NotchAgent.app
     │  Unix socket server reads event → maps to state
     ▼
 Notch panel + menu bar icon
@@ -87,16 +87,16 @@ Click the menu bar icon → **Preferences** to configure:
 ./uninstall.sh
 ```
 
-Removes hooks from `~/.claude/settings.json`, deletes `/Applications/VibeNotch.app`, and cleans up `/tmp/vibe-notch*`.
+Removes hooks from `~/.claude/settings.json`, deletes `/Applications/NotchAgent.app`, and cleans up `/tmp/notch-agent*`.
 
-> Run `uninstall.sh` before deleting the repo. If you delete the repo first, the dead hook paths in `~/.claude/settings.json` will cause errors on every Claude session. Fix by removing the `vibe-notch-hook` entries manually from that file.
+> Run `uninstall.sh` before deleting the repo. If you delete the repo first, the dead hook paths in `~/.claude/settings.json` will cause errors on every Claude session. Fix by removing the `notch-agent-hook` entries manually from that file.
 
 ---
 
 ## Development
 
 ```bash
-swift build && .build/debug/VibeNotch
+swift build && .build/debug/NotchAgent
 ```
 
 Auto-rebuild on file changes:
@@ -116,15 +116,15 @@ Build the `.app` bundle without installing:
 ## Project structure
 
 ```
-vibe-notch/
-├── Sources/VibeNotch/
+notch-agent/
+├── Sources/NotchAgent/
 │   ├── main.swift                      # NSPanel, NSStatusItem, IndicatorView, AppDelegate
 │   ├── StateWatcher.swift              # ClaudeState — Unix socket server + agent counter
 │   └── SettingsWindowController.swift  # Preferences UI, AppPreferences, color palettes
 ├── hooks/
-│   └── vibe-notch-hook.py              # Claude Code hook — sends events via Unix socket
+│   └── notch-agent-hook.py              # Claude Code hook — sends events via Unix socket
 ├── scripts/
-│   ├── bundle.sh                       # Creates VibeNotch.app bundle
+│   ├── bundle.sh                       # Creates NotchAgent.app bundle
 │   └── install.sh                      # bundle.sh + copy to /Applications
 ├── setup.sh                            # One-command install + hook wiring
 ├── uninstall.sh                        # Full cleanup

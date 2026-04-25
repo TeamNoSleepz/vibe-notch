@@ -3,7 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-APP_NAME="VibeNotch"
+APP_NAME="NotchAgent"
 BUNDLE="$PROJECT_DIR/$APP_NAME.app"
 
 "$SCRIPT_DIR/bundle.sh"

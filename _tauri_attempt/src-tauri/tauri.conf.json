@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "vibe-notch",
+  "productName": "notch-agent",
   "version": "0.0.1",
-  "identifier": "com.vibenotch.app",
+  "identifier": "com.notchagent.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "notch",
-        "title": "vibe-notch",
+        "title": "notch-agent",
         "width": 300,
         "height": 120,
         "decorations": false,

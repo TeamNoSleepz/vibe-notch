@@ -9,10 +9,10 @@ final class ClaudeState: ObservableObject {
     @Published var pattern: IndicatorPattern = .idle
     @Published var agentCount: Int = 0
 
-    private static let socketPath = "/tmp/vibe-notch.sock"
+    private static let socketPath = "/tmp/notch-agent.sock"
     private var serverSocket: Int32 = -1
     private var acceptSource: DispatchSourceRead?
-    private let queue = DispatchQueue(label: "com.vibenotch.socket", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.notchagent.socket", qos: .userInitiated)
     private var agentCancellable: AnyCancellable?
     private var audioPlayer: AVAudioPlayer?
 

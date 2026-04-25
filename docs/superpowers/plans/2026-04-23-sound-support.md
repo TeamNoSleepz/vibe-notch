@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Play a configurable system sound when Claude interrupts (→ awaiting) and when Claude finishes (→ idle), with per-event on/off toggles and sound pickers in Preferences. VibeNotch replaces Claude Code's existing `afplay` notification hook so sounds don't double-up.
+**Goal:** Play a configurable system sound when Claude interrupts (→ awaiting) and when Claude finishes (→ idle), with per-event on/off toggles and sound pickers in Preferences. NotchAgent replaces Claude Code's existing `afplay` notification hook so sounds don't double-up.
 
 **Architecture:** Remove the `afplay` entry from the `Notification` hook in `~/.claude/settings.json`. Add 4 new UserDefaults-backed properties to `AppPreferences`. Detect state transitions in `ClaudeState.acceptConnection` and play `NSSound`. Add a sound section to `GeneralSettingsView`.
 
@@ -43,8 +43,8 @@ Expected: `Valid JSON`
 - [ ] **Step 3: Commit**
 
 ```bash
-git -C /Users/nikpavic/vibe-notch add -A
-git -C /Users/nikpavic/vibe-notch commit -m "Note: afplay hook removed from ~/.claude/settings.json" --allow-empty
+git -C /Users/nikpavic/notch-agent add -A
+git -C /Users/nikpavic/notch-agent commit -m "Note: afplay hook removed from ~/.claude/settings.json" --allow-empty
 ```
 
 Note: `~/.claude/settings.json` is outside this repo — no file to stage. The commit just records the manual change was made.
@@ -54,7 +54,7 @@ Note: `~/.claude/settings.json` is outside this repo — no file to stage. The c
 ### Task 1: Add sound preferences to AppPreferences
 
 **Files:**
-- Modify: `Sources/VibeNotch/SettingsWindowController.swift`
+- Modify: `Sources/NotchAgent/SettingsWindowController.swift`
 
 - [ ] **Step 1: Add `systemSounds` static constant and 4 new `@Published` properties**
 
@@ -91,46 +91,46 @@ final class AppPreferences: ObservableObject {
     ]
 
     @Published var paletteIndex: Int {
-        didSet { UserDefaults.standard.set(paletteIndex, forKey: "vibenotch.paletteIndex") }
+        didSet { UserDefaults.standard.set(paletteIndex, forKey: "notchagent.paletteIndex") }
     }
 
     @Published var interruptSoundEnabled: Bool {
-        didSet { UserDefaults.standard.set(interruptSoundEnabled, forKey: "vibenotch.interruptSoundEnabled") }
+        didSet { UserDefaults.standard.set(interruptSoundEnabled, forKey: "notchagent.interruptSoundEnabled") }
     }
 
     @Published var interruptSoundName: String {
-        didSet { UserDefaults.standard.set(interruptSoundName, forKey: "vibenotch.interruptSoundName") }
+        didSet { UserDefaults.standard.set(interruptSoundName, forKey: "notchagent.interruptSoundName") }
     }
 
     @Published var finishSoundEnabled: Bool {
-        didSet { UserDefaults.standard.set(finishSoundEnabled, forKey: "vibenotch.finishSoundEnabled") }
+        didSet { UserDefaults.standard.set(finishSoundEnabled, forKey: "notchagent.finishSoundEnabled") }
     }
 
     @Published var finishSoundName: String {
-        didSet { UserDefaults.standard.set(finishSoundName, forKey: "vibenotch.finishSoundName") }
+        didSet { UserDefaults.standard.set(finishSoundName, forKey: "notchagent.finishSoundName") }
     }
 
     var selectedPalette: ColorPalette { Self.presets[paletteIndex] }
 
     private init() {
-        let saved = UserDefaults.standard.integer(forKey: "vibenotch.paletteIndex")
+        let saved = UserDefaults.standard.integer(forKey: "notchagent.paletteIndex")
         paletteIndex = saved < Self.presets.count ? saved : 0
 
         let ud = UserDefaults.standard
 
-        if ud.object(forKey: "vibenotch.interruptSoundEnabled") != nil {
-            interruptSoundEnabled = ud.bool(forKey: "vibenotch.interruptSoundEnabled")
+        if ud.object(forKey: "notchagent.interruptSoundEnabled") != nil {
+            interruptSoundEnabled = ud.bool(forKey: "notchagent.interruptSoundEnabled")
         } else {
             interruptSoundEnabled = true
         }
-        interruptSoundName = ud.string(forKey: "vibenotch.interruptSoundName") ?? "Ping"
+        interruptSoundName = ud.string(forKey: "notchagent.interruptSoundName") ?? "Ping"
 
-        if ud.object(forKey: "vibenotch.finishSoundEnabled") != nil {
-            finishSoundEnabled = ud.bool(forKey: "vibenotch.finishSoundEnabled")
+        if ud.object(forKey: "notchagent.finishSoundEnabled") != nil {
+            finishSoundEnabled = ud.bool(forKey: "notchagent.finishSoundEnabled")
         } else {
             finishSoundEnabled = true
         }
-        finishSoundName = ud.string(forKey: "vibenotch.finishSoundName") ?? "Glass"
+        finishSoundName = ud.string(forKey: "notchagent.finishSoundName") ?? "Glass"
     }
 }
 ```
@@ -138,7 +138,7 @@ final class AppPreferences: ObservableObject {
 - [ ] **Step 2: Verify build**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: `Build complete!` with no errors.
@@ -146,7 +146,7 @@ Expected: `Build complete!` with no errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/VibeNotch/SettingsWindowController.swift
+git add Sources/NotchAgent/SettingsWindowController.swift
 git commit -m "Add sound preferences to AppPreferences"
 ```
 
@@ -155,7 +155,7 @@ git commit -m "Add sound preferences to AppPreferences"
 ### Task 2: Add playback logic to ClaudeState
 
 **Files:**
-- Modify: `Sources/VibeNotch/StateWatcher.swift`
+- Modify: `Sources/NotchAgent/StateWatcher.swift`
 
 - [ ] **Step 1: Add `playSound(for:to:)` method to `ClaudeState`**
 
@@ -215,7 +215,7 @@ import Darwin
 - [ ] **Step 4: Verify build**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: `Build complete!` with no errors.
@@ -223,7 +223,7 @@ Expected: `Build complete!` with no errors.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add Sources/VibeNotch/StateWatcher.swift
+git add Sources/NotchAgent/StateWatcher.swift
 git commit -m "Play sound on state transitions in ClaudeState"
 ```
 
@@ -232,7 +232,7 @@ git commit -m "Play sound on state transitions in ClaudeState"
 ### Task 3: Add sound section to Settings UI
 
 **Files:**
-- Modify: `Sources/VibeNotch/SettingsWindowController.swift`
+- Modify: `Sources/NotchAgent/SettingsWindowController.swift`
 
 - [ ] **Step 1: Add `SoundRowView` helper**
 
@@ -317,7 +317,7 @@ let w = NSWindow(
 - [ ] **Step 4: Verify build**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: `Build complete!` with no errors.
@@ -325,7 +325,7 @@ Expected: `Build complete!` with no errors.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add Sources/VibeNotch/SettingsWindowController.swift
+git add Sources/NotchAgent/SettingsWindowController.swift
 git commit -m "Add sound section to Preferences UI"
 ```
 
@@ -338,10 +338,10 @@ git commit -m "Add sound section to Preferences UI"
 - [ ] **Step 1: Build and install**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && ./setup.sh
+cd /Users/nikpavic/notch-agent && ./setup.sh
 ```
 
-Expected: builds, installs to `/Applications/VibeNotch.app`, launches.
+Expected: builds, installs to `/Applications/NotchAgent.app`, launches.
 
 - [ ] **Step 2: Open Preferences and verify sound section**
 
@@ -366,4 +366,4 @@ Disable interrupt sound toggle. Trigger a permission prompt — confirm no sound
 
 - [ ] **Step 6: Test persistence**
 
-Change sounds, quit VibeNotch, reopen — confirm selections are preserved.
+Change sounds, quit NotchAgent, reopen — confirm selections are preserved.

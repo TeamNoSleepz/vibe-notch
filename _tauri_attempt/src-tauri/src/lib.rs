@@ -97,7 +97,7 @@ fn configure_macos_window(window: &tauri::WebviewWindow) {
         let _: () = msg_send![ns_window, setFrameOrigin: NSPoint::new(new_x, new_y)];
 
         eprintln!(
-            "[vibe-notch] screen {:?} window {:?} -> origin ({}, {})",
+            "[notch-agent] screen {:?} window {:?} -> origin ({}, {})",
             (screen_frame.size.width, screen_frame.size.height),
             (win_frame.size.width, win_frame.size.height),
             new_x,

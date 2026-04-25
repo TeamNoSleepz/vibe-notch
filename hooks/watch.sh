@@ -1,5 +1,5 @@
 #!/bin/bash
-LOG=/tmp/vibe-notch-log
+LOG=/tmp/notch-agent-log
 touch "$LOG"
 
 echo "┌─────────────────────────────────────────────┐"

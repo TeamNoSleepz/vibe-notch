@@ -44,46 +44,46 @@ final class AppPreferences: ObservableObject {
     ]
 
     @Published var paletteIndex: Int {
-        didSet { UserDefaults.standard.set(paletteIndex, forKey: "vibenotch.paletteIndex") }
+        didSet { UserDefaults.standard.set(paletteIndex, forKey: "notchagent.paletteIndex") }
     }
 
     @Published var interruptSoundEnabled: Bool {
-        didSet { UserDefaults.standard.set(interruptSoundEnabled, forKey: "vibenotch.interruptSoundEnabled") }
+        didSet { UserDefaults.standard.set(interruptSoundEnabled, forKey: "notchagent.interruptSoundEnabled") }
     }
 
     @Published var interruptSoundName: String {
-        didSet { UserDefaults.standard.set(interruptSoundName, forKey: "vibenotch.interruptSoundName") }
+        didSet { UserDefaults.standard.set(interruptSoundName, forKey: "notchagent.interruptSoundName") }
     }
 
     @Published var finishSoundEnabled: Bool {
-        didSet { UserDefaults.standard.set(finishSoundEnabled, forKey: "vibenotch.finishSoundEnabled") }
+        didSet { UserDefaults.standard.set(finishSoundEnabled, forKey: "notchagent.finishSoundEnabled") }
     }
 
     @Published var finishSoundName: String {
-        didSet { UserDefaults.standard.set(finishSoundName, forKey: "vibenotch.finishSoundName") }
+        didSet { UserDefaults.standard.set(finishSoundName, forKey: "notchagent.finishSoundName") }
     }
 
     var selectedPalette: ColorPalette { Self.presets[paletteIndex] }
 
     private init() {
-        let saved = UserDefaults.standard.integer(forKey: "vibenotch.paletteIndex")
+        let saved = UserDefaults.standard.integer(forKey: "notchagent.paletteIndex")
         paletteIndex = saved < Self.presets.count ? saved : 0
 
         let ud = UserDefaults.standard
 
-        if ud.object(forKey: "vibenotch.interruptSoundEnabled") != nil {
-            interruptSoundEnabled = ud.bool(forKey: "vibenotch.interruptSoundEnabled")
+        if ud.object(forKey: "notchagent.interruptSoundEnabled") != nil {
+            interruptSoundEnabled = ud.bool(forKey: "notchagent.interruptSoundEnabled")
         } else {
             interruptSoundEnabled = true
         }
-        interruptSoundName = ud.string(forKey: "vibenotch.interruptSoundName") ?? "Ping"
+        interruptSoundName = ud.string(forKey: "notchagent.interruptSoundName") ?? "Ping"
 
-        if ud.object(forKey: "vibenotch.finishSoundEnabled") != nil {
-            finishSoundEnabled = ud.bool(forKey: "vibenotch.finishSoundEnabled")
+        if ud.object(forKey: "notchagent.finishSoundEnabled") != nil {
+            finishSoundEnabled = ud.bool(forKey: "notchagent.finishSoundEnabled")
         } else {
             finishSoundEnabled = true
         }
-        finishSoundName = ud.string(forKey: "vibenotch.finishSoundName") ?? "Glass"
+        finishSoundName = ud.string(forKey: "notchagent.finishSoundName") ?? "Glass"
     }
 }
 
@@ -238,7 +238,7 @@ struct GeneralSettingsView: View {
                             }
                         } else {
                             alert.messageText = "You're up to date"
-                            alert.informativeText = "VibeNotch \(currentVersion) is the latest version."
+                            alert.informativeText = "NotchAgent \(currentVersion) is the latest version."
                             alert.addButton(withTitle: "OK")
                             alert.runModal()
                         }
@@ -270,8 +270,8 @@ struct SettingsView: View {
 // MARK: - Update Checker
 
 final class UpdateChecker {
-    static let releasesURL = URL(string: "https://github.com/TeamNoSleepz/vibe-notch/releases")!
-    private static let apiURL = URL(string: "https://api.github.com/repos/TeamNoSleepz/vibe-notch/releases/latest")!
+    static let releasesURL = URL(string: "https://github.com/TeamNoSleepz/notch-agent/releases")!
+    private static let apiURL = URL(string: "https://api.github.com/repos/TeamNoSleepz/notch-agent/releases/latest")!
 
     static func check(completion: @escaping (String?) -> Void) {
         var request = URLRequest(url: apiURL)

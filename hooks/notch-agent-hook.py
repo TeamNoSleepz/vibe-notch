@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-VibeNotch hook — sends session state to VibeNotch.app via Unix socket.
+NotchAgent hook — sends session state to NotchAgent.app via Unix socket.
 Fire-and-forget: exits immediately after sending, no bidirectional handling.
 """
 import json
@@ -8,7 +8,7 @@ import os
 import socket
 import sys
 
-SOCKET_PATH = "/tmp/vibe-notch.sock"
+SOCKET_PATH = "/tmp/notch-agent.sock"
 
 
 def send_event(state):

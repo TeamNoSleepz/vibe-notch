@@ -1,16 +1,16 @@
 # Settings Page Design
 
 **Date:** 2026-04-23  
-**Project:** VibeNotch  
+**Project:** NotchAgent  
 **Status:** Approved
 
 ## Overview
 
-Add a Preferences window to VibeNotch. Opened via "Preferences…" in the status menu. Exposes color palette selection and Launch at Login toggle.
+Add a Preferences window to NotchAgent. Opened via "Preferences…" in the status menu. Exposes color palette selection and Launch at Login toggle.
 
 ## Architecture
 
-New file `Sources/VibeNotch/SettingsWindowController.swift` keeps all settings code separate from the existing `main.swift`.
+New file `Sources/NotchAgent/SettingsWindowController.swift` keeps all settings code separate from the existing `main.swift`.
 
 ### New types
 
@@ -27,7 +27,7 @@ Presets defined as a static `[ColorPalette]` array in `SettingsWindowController.
 
 **`AppPreferences`** — `ObservableObject` singleton backed by `UserDefaults`:
 - `@Published var paletteIndex: Int` — index into the presets array
-- Writes to `UserDefaults` key `vibenotch.paletteIndex` on change via `didSet`
+- Writes to `UserDefaults` key `notchagent.paletteIndex` on change via `didSet`
 - Computed property `selectedPalette: ColorPalette` returns `presets[paletteIndex]`
 - Defaults to index `0` on first launch (no migration needed)
 

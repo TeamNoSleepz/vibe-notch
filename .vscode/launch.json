@@ -4,21 +4,21 @@
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:vibe-notch}",
-            "name": "Debug VibeNotch",
-            "target": "VibeNotch",
+            "cwd": "${workspaceFolder:notch-agent}",
+            "name": "Debug NotchAgent",
+            "target": "NotchAgent",
             "configuration": "debug",
-            "preLaunchTask": "swift: Build Debug VibeNotch"
+            "preLaunchTask": "swift: Build Debug NotchAgent"
         },
         {
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:vibe-notch}",
-            "name": "Release VibeNotch",
-            "target": "VibeNotch",
+            "cwd": "${workspaceFolder:notch-agent}",
+            "name": "Release NotchAgent",
+            "target": "NotchAgent",
             "configuration": "release",
-            "preLaunchTask": "swift: Build Release VibeNotch"
+            "preLaunchTask": "swift: Build Release NotchAgent"
         }
     ]
 }

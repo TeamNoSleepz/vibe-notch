@@ -8,4 +8,4 @@ fi
 
 cd "$(dirname "$0")"
 
-exec watchexec -r -e swift --no-vcs-ignore -- 'swift build && .build/debug/VibeNotch'
+exec watchexec -r -e swift --no-vcs-ignore -- 'swift build && .build/debug/NotchAgent'

@@ -2,7 +2,7 @@
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_NAME="VibeNotch"
+APP_NAME="NotchAgent"
 BUNDLE="$PROJECT_DIR/$APP_NAME.app"
 
 echo "Building $APP_NAME..."
@@ -21,13 +21,13 @@ cat > "$BUNDLE/Contents/Info.plist" << 'EOF'
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.vibenotch.app</string>
+    <string>com.notchagent.app</string>
     <key>CFBundleName</key>
-    <string>VibeNotch</string>
+    <string>NotchAgent</string>
     <key>CFBundleDisplayName</key>
-    <string>VibeNotch</string>
+    <string>NotchAgent</string>
     <key>CFBundleExecutable</key>
-    <string>VibeNotch</string>
+    <string>NotchAgent</string>
     <key>CFBundleVersion</key>
     <string>0.1</string>
     <key>CFBundleShortVersionString</key>

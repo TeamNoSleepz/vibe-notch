@@ -18,10 +18,10 @@ Play a sound when Claude interrupts (needs input) and when Claude finishes work.
 Four new `@Published` properties added to `AppPreferences`, persisted via UserDefaults:
 
 ```swift
-@Published var interruptSoundEnabled: Bool   // key: vibenotch.interruptSoundEnabled, default: true
-@Published var interruptSoundName: String    // key: vibenotch.interruptSoundName, default: "Ping"
-@Published var finishSoundEnabled: Bool      // key: vibenotch.finishSoundEnabled, default: true
-@Published var finishSoundName: String       // key: vibenotch.finishSoundName, default: "Glass"
+@Published var interruptSoundEnabled: Bool   // key: notchagent.interruptSoundEnabled, default: true
+@Published var interruptSoundName: String    // key: notchagent.interruptSoundName, default: "Ping"
+@Published var finishSoundEnabled: Bool      // key: notchagent.finishSoundEnabled, default: true
+@Published var finishSoundName: String       // key: notchagent.finishSoundName, default: "Glass"
 
 static let systemSounds = [
     "Basso","Blow","Bottle","Frog","Funk","Glass",

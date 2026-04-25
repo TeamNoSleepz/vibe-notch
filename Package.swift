@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "VibeNotch",
+    name: "NotchAgent",
     platforms: [.macOS(.v13)],
     targets: [
         .executableTarget(
-            name: "VibeNotch",
+            name: "NotchAgent",
             linkerSettings: [.linkedFramework("AVFoundation")]
         )
     ]

@@ -2,10 +2,10 @@
 set -e
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK="$REPO_DIR/hooks/vibe-notch-hook.sh"
+HOOK="$REPO_DIR/hooks/notch-agent-hook.sh"
 SETTINGS="$HOME/.claude/settings.json"
 
-echo "=== VibeNotch Uninstall ==="
+echo "=== NotchAgent Uninstall ==="
 echo ""
 
 # 1. Remove hooks from ~/.claude/settings.json
@@ -38,19 +38,19 @@ with open(settings_path, "w") as f:
 if removed:
     print(f"  Removed hooks for: {', '.join(removed)}")
 else:
-    print("  No VibeNotch hooks found.")
+    print("  No NotchAgent hooks found.")
 PYEOF
 else
     echo "  No ~/.claude/settings.json found — nothing to do."
 fi
 
 # 2. Remove the app
-if [ -d "/Applications/VibeNotch.app" ]; then
-    echo "Removing /Applications/VibeNotch.app..."
-    rm -rf "/Applications/VibeNotch.app"
+if [ -d "/Applications/NotchAgent.app" ]; then
+    echo "Removing /Applications/NotchAgent.app..."
+    rm -rf "/Applications/NotchAgent.app"
     echo "  Done."
 else
-    echo "  VibeNotch.app not found in /Applications."
+    echo "  NotchAgent.app not found in /Applications."
 fi
 
 # 3. Remove Launch at Login if registered
@@ -59,7 +59,7 @@ if python3 -c "import subprocess; subprocess.run(['osascript', '-e', ''], check=
 fi
 
 # 4. Clean up tmp files
-rm -f /tmp/vibe-notch /tmp/vibe-notch-log
+rm -f /tmp/notch-agent /tmp/notch-agent-log
 
 echo ""
-echo "=== Done. VibeNotch has been removed. ==="
+echo "=== Done. NotchAgent has been removed. ==="

@@ -315,10 +315,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         if let button = statusItem?.button {
-            let img = NSImage(systemSymbolName: "square.grid.3x3.fill", accessibilityDescription: "VibeNotch")
+            let img = NSImage(systemSymbolName: "square.grid.3x3.fill", accessibilityDescription: "NotchAgent")
             img?.isTemplate = true
             button.image = img
-            button.toolTip = "VibeNotch"
+            button.toolTip = "NotchAgent"
         }
 
         buildStatusMenu()
@@ -329,7 +329,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // menuWillOpen refreshes dynamic items on demand rather than rebuilding every 300ms
         menu.delegate = self
 
-        let header = NSMenuItem(title: "VibeNotch", action: nil, keyEquivalent: "")
+        let header = NSMenuItem(title: "NotchAgent", action: nil, keyEquivalent: "")
         header.isEnabled = false
         menu.addItem(header)
 
@@ -373,7 +373,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         menu.addItem(NSMenuItem(
-            title: "Quit VibeNotch",
+            title: "Quit NotchAgent",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         ))

@@ -14,20 +14,20 @@
 
 | File | Action | Responsibility |
 |------|--------|---------------|
-| `Sources/VibeNotch/SettingsWindowController.swift` | **Create** | `ColorPalette`, `AppPreferences`, `PaletteSwatchView`, `GeneralSettingsView`, `SettingsView`, `SettingsWindowController` |
-| `Sources/VibeNotch/main.swift` | **Modify** | `IndicatorPattern.color`/`nsColor` → read from prefs; `NotchView` → add `@ObservedObject var prefs`; `AppDelegate` → add "Preferences…" menu item + handler |
+| `Sources/NotchAgent/SettingsWindowController.swift` | **Create** | `ColorPalette`, `AppPreferences`, `PaletteSwatchView`, `GeneralSettingsView`, `SettingsView`, `SettingsWindowController` |
+| `Sources/NotchAgent/main.swift` | **Modify** | `IndicatorPattern.color`/`nsColor` → read from prefs; `NotchView` → add `@ObservedObject var prefs`; `AppDelegate` → add "Preferences…" menu item + handler |
 
 ---
 
 ## Task 1: Create `SettingsWindowController.swift` — data layer
 
 **Files:**
-- Create: `Sources/VibeNotch/SettingsWindowController.swift`
+- Create: `Sources/NotchAgent/SettingsWindowController.swift`
 
 - [ ] **Step 1: Create the file with `ColorPalette` and `AppPreferences`**
 
 ```swift
-// Sources/VibeNotch/SettingsWindowController.swift
+// Sources/NotchAgent/SettingsWindowController.swift
 import AppKit
 import SwiftUI
 import ServiceManagement
@@ -69,14 +69,14 @@ final class AppPreferences: ObservableObject {
 
     @Published var paletteIndex: Int {
         didSet {
-            UserDefaults.standard.set(paletteIndex, forKey: "vibenotch.paletteIndex")
+            UserDefaults.standard.set(paletteIndex, forKey: "notchagent.paletteIndex")
         }
     }
 
     var selectedPalette: ColorPalette { Self.presets[paletteIndex] }
 
     private init() {
-        let saved = UserDefaults.standard.integer(forKey: "vibenotch.paletteIndex")
+        let saved = UserDefaults.standard.integer(forKey: "notchagent.paletteIndex")
         paletteIndex = saved < Self.presets.count ? saved : 0
     }
 }
@@ -85,7 +85,7 @@ final class AppPreferences: ObservableObject {
 - [ ] **Step 2: Verify it compiles**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: build succeeds (new file has no entry point conflicts).
@@ -93,7 +93,7 @@ Expected: build succeeds (new file has no entry point conflicts).
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/VibeNotch/SettingsWindowController.swift
+git add Sources/NotchAgent/SettingsWindowController.swift
 git commit -m "feat: add ColorPalette and AppPreferences data layer"
 ```
 
@@ -102,7 +102,7 @@ git commit -m "feat: add ColorPalette and AppPreferences data layer"
 ## Task 2: Update `IndicatorPattern` to read colors from `AppPreferences`
 
 **Files:**
-- Modify: `Sources/VibeNotch/main.swift` — `IndicatorPattern.color` and `IndicatorPattern.nsColor`
+- Modify: `Sources/NotchAgent/main.swift` — `IndicatorPattern.color` and `IndicatorPattern.nsColor`
 
 Current code in `main.swift` (lines ~74–89):
 ```swift
@@ -150,7 +150,7 @@ var nsColor: NSColor {
 - [ ] **Step 2: Build**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: no errors.
@@ -158,7 +158,7 @@ Expected: no errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/VibeNotch/main.swift
+git add Sources/NotchAgent/main.swift
 git commit -m "feat: read indicator colors from AppPreferences"
 ```
 
@@ -167,7 +167,7 @@ git commit -m "feat: read indicator colors from AppPreferences"
 ## Task 3: Make `NotchView` observe `AppPreferences` for live palette redraws
 
 **Files:**
-- Modify: `Sources/VibeNotch/main.swift` — `NotchView`
+- Modify: `Sources/NotchAgent/main.swift` — `NotchView`
 
 Without this change, selecting a new palette in Preferences while Claude is idle (pattern unchanged) won't redraw the notch.
 
@@ -190,7 +190,7 @@ No other changes needed — SwiftUI will re-render the view when `prefs.paletteI
 - [ ] **Step 2: Build**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: no errors.
@@ -198,7 +198,7 @@ Expected: no errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/VibeNotch/main.swift
+git add Sources/NotchAgent/main.swift
 git commit -m "feat: observe AppPreferences in NotchView for live palette redraws"
 ```
 
@@ -207,7 +207,7 @@ git commit -m "feat: observe AppPreferences in NotchView for live palette redraw
 ## Task 4: Build the SwiftUI settings views
 
 **Files:**
-- Modify: `Sources/VibeNotch/SettingsWindowController.swift` — append `PaletteSwatchView`, `GeneralSettingsView`, `SettingsView`
+- Modify: `Sources/NotchAgent/SettingsWindowController.swift` — append `PaletteSwatchView`, `GeneralSettingsView`, `SettingsView`
 
 - [ ] **Step 1: Append the three views to `SettingsWindowController.swift`**
 
@@ -305,7 +305,7 @@ struct SettingsView: View {
 - [ ] **Step 2: Build**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: no errors.
@@ -313,7 +313,7 @@ Expected: no errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/VibeNotch/SettingsWindowController.swift
+git add Sources/NotchAgent/SettingsWindowController.swift
 git commit -m "feat: add settings SwiftUI views"
 ```
 
@@ -322,7 +322,7 @@ git commit -m "feat: add settings SwiftUI views"
 ## Task 5: Add `SettingsWindowController` (the `NSWindow` owner)
 
 **Files:**
-- Modify: `Sources/VibeNotch/SettingsWindowController.swift` — append `SettingsWindowController`
+- Modify: `Sources/NotchAgent/SettingsWindowController.swift` — append `SettingsWindowController`
 
 - [ ] **Step 1: Append `SettingsWindowController` to the file**
 
@@ -357,7 +357,7 @@ final class SettingsWindowController {
 - [ ] **Step 2: Build**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: no errors.
@@ -365,7 +365,7 @@ Expected: no errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/VibeNotch/SettingsWindowController.swift
+git add Sources/NotchAgent/SettingsWindowController.swift
 git commit -m "feat: add SettingsWindowController NSWindow owner"
 ```
 
@@ -374,7 +374,7 @@ git commit -m "feat: add SettingsWindowController NSWindow owner"
 ## Task 6: Wire "Preferences…" into the status menu
 
 **Files:**
-- Modify: `Sources/VibeNotch/main.swift` — `AppDelegate.buildStatusMenu()` + add `openPreferences()` action
+- Modify: `Sources/NotchAgent/main.swift` — `AppDelegate.buildStatusMenu()` + add `openPreferences()` action
 
 - [ ] **Step 1: Add `openPreferences` handler to `AppDelegate`**
 
@@ -396,7 +396,7 @@ The current end of `buildStatusMenu()` looks like this (the `if Bundle.main.bund
         }
 
         menu.addItem(NSMenuItem(
-            title: "Quit VibeNotch",
+            title: "Quit NotchAgent",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         ))
@@ -429,7 +429,7 @@ Replace that entire tail (from the `if Bundle.main.bundleIdentifier != nil` bloc
         menu.addItem(.separator())
 
         menu.addItem(NSMenuItem(
-            title: "Quit VibeNotch",
+            title: "Quit NotchAgent",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         ))
@@ -440,7 +440,7 @@ This gives the menu layout: state → agent count → separator → (Launch at L
 - [ ] **Step 3: Build**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build 2>&1
+cd /Users/nikpavic/notch-agent && swift build 2>&1
 ```
 
 Expected: no errors.
@@ -448,7 +448,7 @@ Expected: no errors.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add Sources/VibeNotch/main.swift
+git add Sources/NotchAgent/main.swift
 git commit -m "feat: add Preferences menu item to status menu"
 ```
 
@@ -459,7 +459,7 @@ git commit -m "feat: add Preferences menu item to status menu"
 - [ ] **Step 1: Run the binary directly**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && swift build && .build/debug/VibeNotch
+cd /Users/nikpavic/notch-agent && swift build && .build/debug/NotchAgent
 ```
 
 Manual checks:
@@ -474,10 +474,10 @@ Manual checks:
 - [ ] **Step 2: Install as app bundle and full test**
 
 ```bash
-cd /Users/nikpavic/vibe-notch && ./setup.sh
+cd /Users/nikpavic/notch-agent && ./setup.sh
 ```
 
-Reopen `/Applications/VibeNotch.app` and repeat manual checks above. Confirm Launch at Login toggle functions.
+Reopen `/Applications/NotchAgent.app` and repeat manual checks above. Confirm Launch at Login toggle functions.
 
 - [ ] **Step 3: Final commit if any fixups were needed**
 
